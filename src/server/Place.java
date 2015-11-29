@@ -14,9 +14,8 @@ package server;
  */
 public class Place  implements Comparable<Place>{
     //fitness de ahora
-    static double alpha = -1.2;
-    static double beta = 0.2;
-    static double gamma = 1.7;
+    static double alpha = -10;
+    static double gamma = 1000;
     public String id;
     public String name;
     public String imageReference;
@@ -74,7 +73,7 @@ public class Place  implements Comparable<Place>{
     }
     @Override
     public String toString(){
-        return "[ id: "+id+", name: "+name+", rating: "+rating+", imageReference: "+imageReference+" ]";
+        return "[ name: "+name+", rating: "+rating+ ",distance: "+distanceToUser()+"]";
     }
 
     @Override
