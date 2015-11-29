@@ -177,12 +177,15 @@ public class Server {
      */
     public static void main(String[] args) {
         //This array saves the places wich aren't in tne moment in the tour maanager 
-        Server server=new Server(new Location(4.667149,-74.055111), 500, "food+culture+amusement");
+        Server server=new Server(new Location(4.667149,-74.055111), 5000, "culture+food+amusement");
         server.getData(server.makePlacesUrl());
         //System.out.println(server.response);
         server.extracData();
         server.createPlaces();
         Collections.sort(server.places);
+        for(Place x:server.places){
+            System.out.println(x);
+        }
         
         for(int j = 0;j<12;j++ ){
             TourManager.addPlace(server.places.get(j));
