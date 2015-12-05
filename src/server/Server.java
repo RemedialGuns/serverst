@@ -10,12 +10,19 @@ package server;
  * @author RemedialGuns
  */
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static server.SimulatedAnnealing.acceptanceProbability;
 
 
@@ -23,17 +30,99 @@ public class Server {
     
     Location userLocation = new Location();
     int radius;
-    String type;
+    String type="";
     List<String> response = new ArrayList<>();
     List<String> extractedData = new ArrayList<>();
     List<Place> places= new ArrayList<>();
+    String[] placesType = {"random","museum","amusement_park","night_club","night_club","bar",
+        "movie_theater","shopping_mall","art_gallery","bowling_alley","food","amusement_park","book_store","church","park","park","museum"};
+    int checkBoxAnswers[];
+    String gender;
+    int age;
+    String country;
+    
+    Socket skCliente;
+	ServerSocket skServidor;
+	String datareceived, substring1, substring2;
+	final int PUERTO = 5555;// Puerto que utilizara el servidor utilizar este
+							// mismo en el cliente
+	String IP_client;
+	Mensaje_data mdata;
+	String TimeStamp;
 
   
     
-    public Server(Location location, int radius, String type){
+    @SuppressWarnings({"empty-statement", "empty-statement"})
+    public Server(Location location, int radius){
         userLocation=location;
         this.radius=radius;
-        this.type=type;
+        
+        
+        try {
+			System.out.println("************ SERVER ****************");
+			// creamos server socket
+			skServidor = new ServerSocket(PUERTO);
+			System.out.println("Escuchando el puerto " + PUERTO);
+			System.out.println("En Espera....");
+
+			TimeStamp = new java.util.Date().toString();
+
+			try {
+				// Creamos socket para manejar conexion con cliente
+				skCliente = skServidor.accept(); // esperamos al cliente
+				// una vez q se conecto obtenemos la ip
+				IP_client = skCliente.getInetAddress().toString();
+				System.out.println("[" + TimeStamp + "] Conectado al cliente "
+						+ "IP:" + IP_client);
+
+			
+					// Manejamos flujo de Entrada
+					ObjectInputStream ois = new ObjectInputStream(
+							skCliente.getInputStream());
+                                       
+                                        //Cremos objetos con lo recibido del cliente
+					Object cba = ois.readObject();// leemos las checkbox answers
+                                       Object gender = ois.readObject();//leemos gender
+                                       Object age = ois.readObject();
+                                       Object country = ois.readObject();
+                                      if(cba instanceof int[]){
+                                        
+                                            this.checkBoxAnswers = (int[])cba;
+                                            for(int i =0;i<17;i++){
+                                                
+                                                if(this.checkBoxAnswers[i] == 1)
+                                                    this.type += this.placesType[i]+"|";
+                   
+                                                
+                                            }
+                                        this.type = this.type.substring(0, this.type.length()-2);
+                                            
+                                      
+                                         System.out.println(this.type);
+                                            
+                                       }
+                                       if(gender instanceof String){
+                                           this.gender = (String)gender; 
+                                           System.out.println(this.gender);
+                                       }
+                                       this.age = (int)age; 
+                                       System.out.println(this.age);
+                                       
+                                       if(country instanceof String){
+                                       this.country  = (String)country;
+                                       System.out.println((String)country);
+                                       }
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.out.println("[" + TimeStamp + "] Error ");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("[" + TimeStamp + "] Error ");
+		}
+        
+       
+     
     }
     
     
@@ -42,7 +131,7 @@ public class Server {
     
     
     public String makePlacesUrl( ){//Location location, int radius, String type
-        String link = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+userLocation.getLat()+","+userLocation.getLng()+"&radius="+radius+"&types="+type+"&key="+APIKey;
+        String link = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+userLocation.getLat()+","+userLocation.getLng()+"&radius="+radius+"&types="+this.type+"&key="+APIKey;
         return link;
     }
     
@@ -170,39 +259,9 @@ public class Server {
             adding.setUserLocation(userLocation);
             places.add(adding);
     }
-      
-    private static Boolean flag = new Boolean(false) ;
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        //This array saves the places wich aren't in tne moment in the tour maanager 
-        Server server=new Server(new Location(4.667149,-74.055111), 5000, "culture+food+amusement");
-        server.getData(server.makePlacesUrl());
-        //System.out.println(server.response);
-        server.extracData();
-        server.createPlaces();
-        Collections.sort(server.places);
-        for(Place x:server.places){
-            System.out.println(x);
-        }
+    
+    public Tour TempladoSimulado(){
         
-        for(int j = 0;j<12;j++ ){
-            TourManager.addPlace(server.places.get(j));
-        }
-        
-        
-        
-        for(int k =0;k<server.places.size();k++){
-            flag = false;
-            for(int l =0;l<12;l++)
-            if(server.places.get(k) == TourManager.getPlace(l)){
-                flag  = true;
-            }
-            
-            if(!flag)
-                TourManager.addOtherPlace(server.places.get(k));
-        }
         
         // Set initial temp
         double temp = 10000;
@@ -213,6 +272,15 @@ public class Server {
         // Initialize intial solution
         Tour currentSolution = new Tour();
         currentSolution.generateIndividual();
+        if(TourManager.numberOfPlaces()<=12){
+            System.out.println("-------------------------Lugares en la solución  final----------------------------");
+        for (int i = 0; i < TourManager.numberOfPlaces(); i++) {
+            System.out.println("place #"+i+" "+TourManager.getPlace(i));
+            
+        }
+            return  currentSolution;
+        
+        }
         System.out.println("-------------------------Lugares en la solución  inicial----------------------------");
         for (int i = 0; i < TourManager.numberOfPlaces(); i++) {
             System.out.println("place #"+i+" "+TourManager.getPlace(i));
@@ -274,16 +342,7 @@ public class Server {
             if (currentSolution.getDistance() < best.getDistance()) {
                 best = new Tour(currentSolution.getTour());
             }
-     /*          System.out.println("-------------------------solución acutal----------------------------");
-        for (int i = 0; i < currentSolution.tourSize(); i++) {
-            System.out.println("place #"+i+" "+ currentSolution.getPlace(i));
-            
-        }
-            System.out.println("----------------------------------------------------------------------");
-        for (int i = 0; i < TourManager.numberOfOtherPlaces(); i++) {
-            System.out.println("place #"+i+" "+ TourManager.getOtherPlace(i));
-            
-        }*/
+     
             // Cool system
             temp *= 1-coolingRate;
         }
@@ -293,13 +352,69 @@ public class Server {
             System.out.println("place #"+n+" "+ best.getPlace(n));
             
         }
-        System.out.println("Final solution fitness: " + best.getDistance());
-        /* System.out.println("-------------lugares que no entran en la solucion final-----------------------------");
-        /*for (int m = 0; m < TourManager.numberOfOtherPlaces(); m++) {
-            System.out.println("place #"+m+" "+ TourManager.getOtherPlace(m));
         
-        System.out.println("Tour: " + best);
-        }*/
+        // Manejamos flujo de Entrada
+					
+        System.out.println("Final solution fitness: " + best.getDistance());
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(
+                    skCliente.getOutputStream());
+            
+            oos.writeObject("hola mundo");
+        } catch (IOException ex) {
+            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return best;
+    
+    }
+      
+    private static Boolean flag = new Boolean(false) ;
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        //This array saves the places wich aren't in tne moment in the tour maanager 
+        
+            Server server=new Server(new Location(4.667149,-74.055111), 5000);
+            server.getData(server.makePlacesUrl());
+            //System.out.println(server.response);
+            server.extracData();
+            server.createPlaces();
+            Collections.sort(server.places);
+            /*for(Place x:server.places){
+                System.out.println(x);
+            }*/
+            if(server.places.size()>=12)
+                for(int j = 0;j<12;j++ ){
+                    TourManager.addPlace(server.places.get(j));
+                }
+            else
+                for(int j = 0;j<server.places.size();j++ ){
+                    TourManager.addPlace(server.places.get(j));
+                }
+
+
+            for(int k =0;k<server.places.size();k++){
+                flag = false;
+                if(server.places.size()>=12)
+                for(int l =0;l<12;l++)
+                if(server.places.get(k) == TourManager.getPlace(l)){
+                    flag  = true;
+                }
+                if(server.places.size()>=12)
+                if(!flag)
+                    TourManager.addOtherPlace(server.places.get(k));
+            }
+
+
+           server.TempladoSimulado();
+        
+        
+        
+        
+					
+       
+        
         
     }
 }
