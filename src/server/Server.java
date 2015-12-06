@@ -387,10 +387,14 @@ public class Server {
 					oos = new ObjectOutputStream(
 							skCliente1.getOutputStream());
                                        // oos.writeObject(returnValue.tourSize());
-                                       for(int h =0;h<returnValue.tourSize();h++)
+                                       for(int h =0;h<returnValue.tourSize();h++){
+                                        
                                         oos.writeObject(new Object[]{returnValue.getPlace(h).getName()
-                                                , returnValue.getPlace(h).distanceToUser(), returnValue.getPlace(0).rating});
-			} catch (Exception e) {
+                                                , returnValue.getPlace(h).distanceToUser(), returnValue.getPlace(h).rating});
+                                      
+                                       System.out.println(returnValue.getPlace(h).getName());
+                                       }
+                        } catch (Exception e) {
 				e.printStackTrace();
 				System.out.println("[" + TimeStamp + "] Error ");
 			}
