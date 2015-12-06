@@ -10,22 +10,22 @@ import java.util.ArrayList;
 public class TourManager {
 
     // Holds our cities
-    private static ArrayList destinationPlaces = new ArrayList<Place>();
-    public static ArrayList other_places = new ArrayList<Place>(); 
+    private static ArrayList destinationPlaces = new ArrayList<Place_x>();
+    public static ArrayList other_places = new ArrayList<Place_x>(); 
     // Adds a destination city
-    public static void addPlace(Place place) {
+    public static void addPlace(Place_x place) {
         destinationPlaces.add(place);
     }
-    public static void addOtherPlace(Place place) {
+    public static void addOtherPlace(Place_x place) {
         other_places.add(place);
     }
     // Get a city
-    public static Place getPlace(int index){
-        return (Place)destinationPlaces.get(index);
+    public static Place_x getPlace(int index){
+        return (Place_x)destinationPlaces.get(index);
     }
     
-     public static Place getOtherPlace(int index){
-        return (Place)other_places.get(index);
+     public static Place_x getOtherPlace(int index){
+        return (Place_x)other_places.get(index);
     }
     
     // Get the number of destination cities
@@ -37,7 +37,7 @@ public class TourManager {
         return other_places.size();
     }
 
-    static void setOtherPlace(int tourPos2, Place placeSwap1) {
+    static void setOtherPlace(int tourPos2, Place_x placeSwap1) {
         other_places.set(tourPos2, placeSwap1);
     }
     

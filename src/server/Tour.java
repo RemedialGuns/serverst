@@ -11,7 +11,7 @@ import java.util.Collections;
 public class Tour{
 
     // Holds our tour of cities
-    private ArrayList tour = new ArrayList<Place>();
+    private ArrayList tour = new ArrayList<Place_x>();
     // Cache
     private int distance = 0;
     
@@ -42,12 +42,12 @@ public class Tour{
     }
 
     // Gets a place from the tour
-    public Place getPlace(int tourPosition) {
-        return (Place)tour.get(tourPosition);
+    public Place_x getPlace(int tourPosition) {
+        return (Place_x)tour.get(tourPosition);
     }
 
     // Sets a city in a certain position within a tour
-    public void setPlace(int tourPosition, Place place) {
+    public void setPlace(int tourPosition, Place_x place) {
         tour.set(tourPosition, place);
         // If the tours been altered we need to reset the fitness and distance
         distance = 0;

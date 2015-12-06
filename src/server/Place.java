@@ -3,88 +3,50 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
-
 package server;
-
 
 /**
  *
- * @author Miguel
+ * @author santiago
  */
-public class Place  implements Comparable<Place>{
-    //fitness de ahora
-    static double alpha = -10;
-    static double gamma = 1000;
-    public String id;
-    public String name;
-    public String imageReference;
-    public double rating;
-    public Location location;
-    public Location userLocation;
+import java.io.Serializable;
+
+public class Place implements Serializable{
+    private static final long serialVersionUID = 9178463713495654837L;
+    public String type;
+    private String name;
+    private double distance;
+    private double rate;
+    private double cost;
 
 
-    Place(String id, String name, double rating, Location location, String imageReference){
-    	this.id=id;
-    	this.name=name;
-    	this.rating=rating;
-    	this.location=location;
-        this.imageReference=imageReference;
-    }
-
-    public String getId(){
-    	return id;
+    public  Place(String type, String name, double distance, double rate, double cost){
+        
+        this.type=type;
+        this.name=name;
+        this.distance=distance;
+        this.rate=rate;
+        this.cost=cost;
     }
 
     public String getName(){
-    	return name;
+        return name;
     }
 
-    public double getRating(){
-    	return rating;
-    }
-
-    public Location getLocation(){
-    	return location;
-    }
-    
-    public String getImageReference(){
-        return imageReference;
-    }
-    public void setUserLocation(Location location){
-        this.userLocation = location;
-    }
-    
-    // Gets the distance to given user
-    public double distanceToUser(){
-        double xDistance = Math.abs(location.getLat()  - userLocation.getLat() );
-        double yDistance = Math.abs(location.getLng() - userLocation.getLng());
-        double distance = Math.sqrt( (xDistance*xDistance) + (yDistance*yDistance) );
-        
+    public double getDistance(){
         return distance;
     }
-    
-    
-    // Get the fitness function of the place
-    
-    public  double fitnessFunc(){
-		
-        return ((alpha*rating)+(gamma*distanceToUser()));
-    }
-    @Override
-    public String toString(){
-        return "[ name: "+name+", rating: "+rating+ ",distance: "+distanceToUser()+"]";
+
+    public double getRate(){
+        return rate;
     }
 
-    @Override
-    public int compareTo(Place that) {
-        double thatDistance = that.distanceToUser();
-
-	    if (this.distanceToUser() > thatDistance)
-	        return 1;
-	    else if (this.distanceToUser() < thatDistance)
-	            return -1;
-	    else
-	        return 0;
+    public double getCost(){
+        return cost;
     }
+
+    public String getType(){
+        return type;
+    }
+
 }

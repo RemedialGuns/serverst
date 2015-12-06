@@ -33,7 +33,7 @@ public class Server {
     String type="";
     List<String> response = new ArrayList<>();
     List<String> extractedData = new ArrayList<>();
-    List<Place> places= new ArrayList<>();
+    List<Place_x> places= new ArrayList<>();
     String[] placesType = {"random","museum","amusement_park","night_club","night_club","bar",
         "movie_theater","shopping_mall","art_gallery","bowling_alley","food","amusement_park","book_store","church","park","park","museum"};
     int checkBoxAnswers[];
@@ -43,13 +43,17 @@ public class Server {
     
     Socket skCliente;
 	ServerSocket skServidor;
+    
+        Socket skCliente1;
+	ServerSocket skServidor1;
+        ObjectOutputStream oos;
 	String datareceived, substring1, substring2;
 	final int PUERTO = 5555;// Puerto que utilizara el servidor utilizar este
 							// mismo en el cliente
 	String IP_client;
 	Mensaje_data mdata;
 	String TimeStamp;
-
+        String TimeStamp1;
   
     
     @SuppressWarnings({"empty-statement", "empty-statement"})
@@ -85,7 +89,9 @@ public class Server {
                                        Object gender = ois.readObject();//leemos gender
                                        Object age = ois.readObject();
                                        Object country = ois.readObject();
-                                      if(cba instanceof int[]){
+                                      skCliente.close();
+                                      skServidor.close();
+                                       if(cba instanceof int[]){
                                         
                                             this.checkBoxAnswers = (int[])cba;
                                             for(int i =0;i<17;i++){
@@ -95,7 +101,7 @@ public class Server {
                    
                                                 
                                             }
-                                        this.type = this.type.substring(0, this.type.length()-2);
+                                        this.type = this.type.substring(0, this.type.length()-1);
                                             
                                       
                                          System.out.println(this.type);
@@ -255,14 +261,15 @@ public class Server {
     public void save(double lat, double lng, String id, String name, double rating, String imageReference){
         System.out.println("saving");
         Location saveLocation = new Location(lat, lng);
-            Place adding=new Place(id, name, rating, saveLocation, imageReference);
+            Place_x adding=new Place_x(id, name, rating, saveLocation, imageReference);
             adding.setUserLocation(userLocation);
             places.add(adding);
     }
     
-    public Tour TempladoSimulado(){
+    public Tour TempladoSimulado() throws IOException{
         
         
+        Tour returnValue;
         // Set initial temp
         double temp = 10000;
 
@@ -273,99 +280,126 @@ public class Server {
         Tour currentSolution = new Tour();
         currentSolution.generateIndividual();
         if(TourManager.numberOfPlaces()<=12){
-            System.out.println("-------------------------Lugares en la solución  final----------------------------");
-        for (int i = 0; i < TourManager.numberOfPlaces(); i++) {
-            System.out.println("place #"+i+" "+TourManager.getPlace(i));
-            
-        }
-            return  currentSolution;
-        
-        }
-        System.out.println("-------------------------Lugares en la solución  inicial----------------------------");
-        for (int i = 0; i < TourManager.numberOfPlaces(); i++) {
-            System.out.println("place #"+i+" "+TourManager.getPlace(i));
-            
-        }
-        System.out.println("Initial solution fitness: " + currentSolution.getDistance());
-        /* System.out.println("------------Lugares que no estan en la solución inicial---------------------------------");
-        for (int o = 0; o < TourManager.numberOfOtherPlaces(); o++) {
-            System.out.println("place #"+o+" "+ TourManager.getOtherPlace(o));
-        
-        }*/
-        // Set as current best
-        Tour best = new Tour(currentSolution.getTour());
-        //The auxiliar to find the minumun change
-        double minAux = -1000000;
-        // Loop until system has cooled
-        while (temp > 1) {
-            // Create new neighbour tour
-            Tour newSolution = new Tour(currentSolution.getTour());
+                System.out.println("-------------------------Lugares en la solución  final----------------------------");
+            for (int i = 0; i < TourManager.numberOfPlaces(); i++) {
+                System.out.println("place #"+i+" "+TourManager.getPlace(i));
 
-            // Get a random positions in the tour
-            int tourPos1 = (int) (newSolution.tourSize() * Math.random());
-             int tourPos2 = 0;
-            //We need to find the city to change with in the other_cities array 
-            for(int i = 0; i < TourManager.numberOfOtherPlaces();i++){
-                if( (TourManager.getOtherPlace(i).distanceToUser() - TourManager.getPlace(tourPos1).distanceToUser())
-                        <minAux){
-                    minAux = (TourManager.getOtherPlace(i).distanceToUser() - TourManager.getPlace(tourPos1).distanceToUser());
-                    tourPos2 = i;
+            }
+                returnValue = currentSolution;
+                
+        
+        }
+        else{
+            System.out.println("-------------------------Lugares en la solución  inicial----------------------------");
+            for (int i = 0; i < TourManager.numberOfPlaces(); i++) {
+                System.out.println("place #"+i+" "+TourManager.getPlace(i));
+
+            }
+            System.out.println("Initial solution fitness: " + currentSolution.getDistance());
+            /* System.out.println("------------Lugares que no estan en la solución inicial---------------------------------");
+            for (int o = 0; o < TourManager.numberOfOtherPlaces(); o++) {
+                System.out.println("place #"+o+" "+ TourManager.getOtherPlace(o));
+
+            }*/
+            // Set as current best
+            Tour best = new Tour(currentSolution.getTour());
+            //The auxiliar to find the minumun change
+            double minAux = -1000000;
+            // Loop until system has cooled
+            while (temp > 1) {
+                // Create new neighbour tour
+                Tour newSolution = new Tour(currentSolution.getTour());
+
+                // Get a random positions in the tour
+                int tourPos1 = (int) (newSolution.tourSize() * Math.random());
+                 int tourPos2 = 0;
+                //We need to find the city to change with in the other_cities array 
+                for(int i = 0; i < TourManager.numberOfOtherPlaces();i++){
+                    if( (TourManager.getOtherPlace(i).distanceToUser() - TourManager.getPlace(tourPos1).distanceToUser())
+                            <minAux){
+                        minAux = (TourManager.getOtherPlace(i).distanceToUser() - TourManager.getPlace(tourPos1).distanceToUser());
+                        tourPos2 = i;
+                    }
                 }
-            }
-           
 
-            // Now we must change the tourPosition in the new solution with the place tha will enter 
-            
-            //Place to change
-            Place placeSwap1 = newSolution.getPlace(tourPos1);
-            //Place from the other places to enter
-            Place placeSwap2 = TourManager.getOtherPlace(tourPos2);//newSolution.ge(tourPos2);
 
-            // Swap them
-            newSolution.setPlace(tourPos1, placeSwap2);
-            TourManager.setOtherPlace(tourPos2,placeSwap1);
-            // Get energy of solutions
-            double currentEnergy = currentSolution.getDistance();
-            double neighbourEnergy = newSolution.getDistance();
+                // Now we must change the tourPosition in the new solution with the place tha will enter 
 
-            // Decide if we should accept the neighbour
-            if (acceptanceProbability(currentEnergy, neighbourEnergy, temp) > Math.random()) {
-                currentSolution = new Tour(newSolution.getTour());
-            }
-            //If the solution isn´t accepted we need to change again in the other_places because
-            //it wont enter
-            else{
-                TourManager.setOtherPlace(tourPos2,placeSwap2);
+                //Place to change
+                Place_x placeSwap1 = newSolution.getPlace(tourPos1);
+                //Place from the other places to enter
+                Place_x placeSwap2 = TourManager.getOtherPlace(tourPos2);//newSolution.ge(tourPos2);
+
+                // Swap them
+                newSolution.setPlace(tourPos1, placeSwap2);
+                TourManager.setOtherPlace(tourPos2,placeSwap1);
+                // Get energy of solutions
+                double currentEnergy = currentSolution.getDistance();
+                double neighbourEnergy = newSolution.getDistance();
+
+                // Decide if we should accept the neighbour
+                if (acceptanceProbability(currentEnergy, neighbourEnergy, temp) > Math.random()) {
+                    currentSolution = new Tour(newSolution.getTour());
+                }
+                //If the solution isn´t accepted we need to change again in the other_places because
+                //it wont enter
+                else{
+                    TourManager.setOtherPlace(tourPos2,placeSwap2);
+                }
+
+                // Keep track of the best solution found
+                if (currentSolution.getDistance() < best.getDistance()) {
+                    best = new Tour(currentSolution.getTour());
+                }
+
+                // Cool system
+                temp *= 1-coolingRate;
             }
 
-            // Keep track of the best solution found
-            if (currentSolution.getDistance() < best.getDistance()) {
-                best = new Tour(currentSolution.getTour());
+            System.out.println("-------------------------Lugares en la solución  final----------------------------");
+            for (int n = 0; n < best.tourSize(); n++) {
+                System.out.println("place #"+n+" "+ best.getPlace(n));
+
             }
-     
-            // Cool system
-            temp *= 1-coolingRate;
+
+
+            System.out.println("Final solution fitness: " + best.getDistance());
+
+            returnValue = best;
         }
-        
-        System.out.println("-------------------------Lugares en la solución  final----------------------------");
-        for (int n = 0; n < best.tourSize(); n++) {
-            System.out.println("place #"+n+" "+ best.getPlace(n));
-            
-        }
-        
-        // Manejamos flujo de Entrada
-					
-        System.out.println("Final solution fitness: " + best.getDistance());
         try {
-            ObjectOutputStream oos = new ObjectOutputStream(
-                    skCliente.getOutputStream());
-            
-            oos.writeObject("hola mundo");
-        } catch (IOException ex) {
-            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return best;
+			System.out.println("************ SERVER ****************");
+			// creamos server socket
+			skServidor1 = new ServerSocket(PUERTO);
+			System.out.println("Escuchando el puerto " + PUERTO);
+			System.out.println("En Espera....");
+
+			TimeStamp1 = new java.util.Date().toString();
+
+			try {
+				// Creamos socket para manejar conexion con cliente
+				skCliente1 = skServidor1.accept(); // esperamos al cliente
+				// una vez q se conecto obtenemos la ip
+				IP_client = skCliente1.getInetAddress().toString();
+				System.out.println("[" + TimeStamp + "] Conectado al cliente "
+						+ "IP:" + IP_client);
+                                        // Manejamos flujo de salida
+					oos = new ObjectOutputStream(
+							skCliente1.getOutputStream());
+                                       // oos.writeObject(returnValue.tourSize());
+                                       for(int h =0;h<returnValue.tourSize();h++)
+                                        oos.writeObject(new Object[]{returnValue.getPlace(h).getName()
+                                                , returnValue.getPlace(h).distanceToUser(), returnValue.getPlace(0).rating});
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.out.println("[" + TimeStamp + "] Error ");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("[" + TimeStamp + "] Error ");
+		} 
     
+        return returnValue;
     }
       
     private static Boolean flag = new Boolean(false) ;
@@ -381,7 +415,7 @@ public class Server {
             server.extracData();
             server.createPlaces();
             Collections.sort(server.places);
-            /*for(Place x:server.places){
+            /*for(Place_x x:server.places){
                 System.out.println(x);
             }*/
             if(server.places.size()>=12)
@@ -406,8 +440,12 @@ public class Server {
                     TourManager.addOtherPlace(server.places.get(k));
             }
 
-
-           server.TempladoSimulado();
+           
+        try {
+            server.TempladoSimulado();
+        } catch (IOException ex) {
+            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         
         
